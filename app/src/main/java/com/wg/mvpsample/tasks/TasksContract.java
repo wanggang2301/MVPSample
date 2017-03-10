@@ -15,10 +15,19 @@ public interface TasksContract {
     interface View extends BaseView<Presenter> {
         //显示的View
         void showAddTask();
+
+        void updataAdapter();
+
+        void showToastView(String msg);
+
     }
 
     //控制View的显示
     interface Presenter extends BasePresenter {
         void addNewTask();
+
+        void addPersonTask();
+
+        void showToast(String msg);
     }
 }

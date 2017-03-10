@@ -11,11 +11,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wg.mvpsample.R;
 import com.wg.mvpsample.addedittask.AddEditTaskActivity;
 import com.wg.mvpsample.data.Person;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -27,8 +32,11 @@ import de.greenrobot.event.Subscribe;
 public class TasksFragment extends Fragment implements TasksContract.View {
 
     private TasksContract.Presenter mPresenter;
+    private TasksAdapter mListAdapter;
 
     Button btn_add;
+
+    private List<Person> list;
 
     public TasksFragment() {
         // Requires empty public constructor
@@ -41,6 +49,12 @@ public class TasksFragment extends Fragment implements TasksContract.View {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        list = new ArrayList<>();
+
+        list.add(new Person("好好", "89"));
+        list.add(new Person("是看得见 ", "110"));
+        mListAdapter = new TasksAdapter(list, taskItemListener);
     }
 
 
@@ -68,6 +82,9 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         });
 
 
+        ListView listView = (ListView) root.findViewById(R.id.tasks_list);
+        listView.setAdapter(mListAdapter);
+
         return root;
     }
 
@@ -79,9 +96,30 @@ public class TasksFragment extends Fragment implements TasksContract.View {
     }
 
     @Override
+    public void updataAdapter() {
+
+        mListAdapter.replaceData(list);
+
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+    }
+
+
+    TaskItemListener taskItemListener = new TaskItemListener() {
+        @Override
+        public void onTaskClick(Person clickedTask) {
+            mPresenter.showToast("数据==" + clickedTask.getName());
+
+        }
+    };
+
+    @Override
+    public void showToastView(String msg) {
+        Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -90,12 +128,22 @@ public class TasksFragment extends Fragment implements TasksContract.View {
     @Subscribe
     public void getPersonData(Person person) {
         Log.d("wangg", "收到的数据===" + person.getName() + "__" + person.getAge());
+        list.add(person);
+
+        mPresenter.addPersonTask();
 
     }
 
     private static class TasksAdapter extends BaseAdapter {
 
         private List<Person> mPersons;
+
+        private TaskItemListener taskItemListener;
+
+        public TasksAdapter(List<Person> tasks, TaskItemListener itemListener) {
+            setList(tasks);
+            taskItemListener = itemListener;
+        }
 
 
         public void replaceData(List<Person> tasks) {
@@ -104,7 +152,10 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         }
 
         private void setList(List<Person> tasks) {
-            mPersons = tasks;
+            if (tasks.size() > 0) {
+                mPersons = tasks;
+
+            }
         }
 
 
@@ -114,7 +165,7 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         }
 
         @Override
-        public Object getItem(int position) {
+        public Person getItem(int position) {
             return mPersons.get(position);
         }
 
@@ -131,42 +182,33 @@ public class TasksFragment extends Fragment implements TasksContract.View {
                 rowView = inflater.inflate(R.layout.task_item, viewGroup, false);
             }
 
-            /*final Task task = getItem(i);
+            final Person person = getItem(position);
 
-            TextView titleTV = (TextView) rowView.findViewById(R.id.title);
-            titleTV.setText(task.getTitleForList());
+            LinearLayout ll_task = (LinearLayout) rowView.findViewById(R.id.ll_task);
 
-            CheckBox completeCB = (CheckBox) rowView.findViewById(R.id.complete);
+            TextView titleName = (TextView) rowView.findViewById(R.id.tv_name);
+            TextView titleAge = (TextView) rowView.findViewById(R.id.tv_age);
 
-            // Active/completed task UI
-            completeCB.setChecked(task.isCompleted());
-            if (task.isCompleted()) {
-                rowView.setBackgroundDrawable(viewGroup.getContext()
-                        .getResources().getDrawable(R.drawable.list_completed_touch_feedback));
-            } else {
-                rowView.setBackgroundDrawable(viewGroup.getContext()
-                        .getResources().getDrawable(R.drawable.touch_feedback));
-            }
+            titleName.setText(person.getName());
+            titleAge.setText(person.getAge());
 
-            completeCB.setOnClickListener(new View.OnClickListener() {
+
+            ll_task.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!task.isCompleted()) {
-                        mItemListener.onCompleteTaskClick(task);
-                    } else {
-                        mItemListener.onActivateTaskClick(task);
-                    }
+                    taskItemListener.onTaskClick(person);
                 }
             });
 
-            rowView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mItemListener.onTaskClick(task);
-                }
-            });
-*/
+
             return rowView;
         }
+    }
+
+    public interface TaskItemListener {
+
+        void onTaskClick(Person clickedTask);
+
+
     }
 }

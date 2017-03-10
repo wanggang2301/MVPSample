@@ -32,4 +32,14 @@ public class TasksPresenter implements TasksContract.Presenter {
         mTasksView.showAddTask();
     }
 
+    @Override
+    public void addPersonTask() {
+        mTasksView.updataAdapter();
+    }
+
+
+    @Override
+    public void showToast(String msg) {
+        mTasksView.showToastView(msg);
+    }
 }
