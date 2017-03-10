@@ -20,6 +20,10 @@ public interface TasksContract {
 
         void showToastView(String msg);
 
+        void showNoTaskView();
+
+        void showTaskView();
+
     }
 
     //控制View的显示
@@ -29,5 +33,9 @@ public interface TasksContract {
         void addPersonTask();
 
         void showToast(String msg);
+
+        void showNoTask();
+
+        void showTask();
     }
 }

@@ -34,9 +34,14 @@ public class TasksFragment extends Fragment implements TasksContract.View {
     private TasksContract.Presenter mPresenter;
     private TasksAdapter mListAdapter;
 
-    Button btn_add;
+
+    private LinearLayout ll_notask;
+    private LinearLayout mTasksView;
+
+    private Button btn_add;
 
     private List<Person> list;
+
 
     public TasksFragment() {
         // Requires empty public constructor
@@ -51,9 +56,6 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         super.onCreate(savedInstanceState);
 
         list = new ArrayList<>();
-
-        list.add(new Person("好好", "89"));
-        list.add(new Person("是看得见 ", "110"));
         mListAdapter = new TasksAdapter(list, taskItemListener);
     }
 
@@ -71,6 +73,9 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         EventBus.getDefault().register(this);
 
         btn_add = (Button) getActivity().findViewById(R.id.btn_add);
+
+        ll_notask = (LinearLayout) root.findViewById(R.id.noTasks);
+        mTasksView = (LinearLayout) root.findViewById(R.id.tasksLL);
 
 
         btn_add.setOnClickListener(new View.OnClickListener() {
@@ -90,6 +95,18 @@ public class TasksFragment extends Fragment implements TasksContract.View {
 
 
     @Override
+    public void showNoTaskView() {
+        mTasksView.setVisibility(View.GONE);
+        ll_notask.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void showTaskView() {
+        mTasksView.setVisibility(View.VISIBLE);
+        ll_notask.setVisibility(View.GONE);
+    }
+
+    @Override
     public void showAddTask() {
         Intent intent = new Intent(getContext(), AddEditTaskActivity.class);
         startActivityForResult(intent, AddEditTaskActivity.REQUEST_ADD_TASK);
@@ -97,7 +114,6 @@ public class TasksFragment extends Fragment implements TasksContract.View {
 
     @Override
     public void updataAdapter() {
-
         mListAdapter.replaceData(list);
 
     }
@@ -113,7 +129,6 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         @Override
         public void onTaskClick(Person clickedTask) {
             mPresenter.showToast("数据==" + clickedTask.getName());
-
         }
     };
 
@@ -129,6 +144,16 @@ public class TasksFragment extends Fragment implements TasksContract.View {
     public void getPersonData(Person person) {
         Log.d("wangg", "收到的数据===" + person.getName() + "__" + person.getAge());
         list.add(person);
+
+
+        if (list.size() > 0) {
+
+            mPresenter.showTask();
+
+        } else {
+            mPresenter.showNoTask();
+        }
+
 
         mPresenter.addPersonTask();
 
@@ -152,10 +177,7 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         }
 
         private void setList(List<Person> tasks) {
-            if (tasks.size() > 0) {
-                mPersons = tasks;
-
-            }
+            mPersons = tasks;
         }
 
 
